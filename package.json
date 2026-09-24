@@ -1,18 +1,21 @@
 {
   "name": "pleasestayhere",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Local rental search collector MVP: Facebook groups -> SQLite -> normalized listings",
+  "description": "Rental search collector MVP: Facebook groups -> Supabase -> normalized listings",
+  "engines": { "node": ">=22" },
   "scripts": {
     "login": "node src/facebook/login.js",
     "collect": "node src/cli.js collect",
     "import:fixture": "node src/cli.js import-fixture tests/fixture-posts.json",
     "stats": "node src/cli.js stats",
     "test": "node --test tests/*.test.js",
-    "dev": "node src/server.js"
+    "dev": "node src/server.js",
+    "start": "node src/server.js"
   },
   "dependencies": {
-    "playwright": "^1.55.0"
+    "@supabase/supabase-js": "2.117.1",
+    "playwright": "1.55.0"
   }
 }
