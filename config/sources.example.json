@@ -1,0 +1,11 @@
+[
+  {
+    "id": "bali-example-1",
+    "type": "facebook_group",
+    "name": "Bali rentals example",
+    "url": "https://www.facebook.com/groups/REPLACE_WITH_GROUP_ID_OR_SLUG/",
+    "country": "Indonesia",
+    "city": "Bali",
+    "enabled": true
+  }
+]
