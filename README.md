@@ -1,22 +1,56 @@
 # PleaseStayHere MVP
 
-Локальный read-only поисковик аренды: Facebook groups → raw posts → нормализация → дедупликация → веб-интерфейс.
+Поисковик локальной аренды: Facebook groups → collector → Supabase → дедупликация → веб-интерфейс.
 
-## Что уже есть
+## Архитектура
 
-- Playwright collector для Facebook-групп через обычную браузерную сессию.
-- Стартовый список Bali-групп в `config/sources.json`.
-- SQLite: `sources`, `raw_posts`, `listings`.
-- Фильтр rental/non-rental.
-- Извлечение цены/валюты/периода, типа жилья, bedrooms/bathrooms, телефона и Bali-района.
-- Cross-group дедупликация: одинаковый permalink, одинаковый нормализованный текст, phone+price+area, сильное совпадение характеристик и текста.
-- Дубли сохраняются для аудита, но по умолчанию скрыты в поиске. В интерфейсе их можно включить.
-- Локальный UI с поиском, фильтрами, карточками, фото и переходом к исходному Facebook-посту.
-- Fixture и unit-тесты без Facebook.
+- Facebook collector: Playwright, запускается локально.
+- База: Supabase/Postgres.
+- Web/API: Node.js, читает данные из Supabase.
+- Интерфейс: поиск, фильтры, карточки, фото, исходный Facebook-пост.
+- Дедупликация: permalink, нормализованный текст, телефон+цена+район, характеристики объекта и текстовая похожесть.
 
-## Быстрый старт
+## Supabase
 
-Требуется Node.js 22.5+.
+Проект уже подготовлен:
+
+`https://ufzuupiyjwuhvjmmlvdn.supabase.co`
+
+Созданы таблицы:
+
+- `sources`
+- `raw_posts`
+- `listings`
+
+RLS включён. Публичные роли `anon` и `authenticated` не имеют прямого доступа к таблицам. Collector и server используют серверный `SUPABASE_SECRET_KEY`.
+
+SQL-схема сохранена в:
+
+`supabase/schema.sql`
+
+### Переменные окружения
+
+Скопируй:
+
+```bash
+cp .env.example .env
+```
+
+В `.env`:
+
+```env
+SUPABASE_URL=https://ufzuupiyjwuhvjmmlvdn.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_...
+PORT=4173
+```
+
+Secret key берётся в Supabase → Settings → API Keys → Secret keys.
+
+Не добавляй `.env` или secret key в GitHub.
+
+## Запуск
+
+Требуется Node.js 22+.
 
 ```bash
 npm install
@@ -24,81 +58,87 @@ npx playwright install chromium
 npm test
 ```
 
-### Посмотреть интерфейс сразу на тестовых данных
+Node можно запускать с env-файлом так:
 
 ```bash
-npm run import:fixture
-npm run dev
+node --env-file=.env src/cli.js stats
+```
+
+### Авторизация Facebook
+
+Один раз:
+
+```bash
+npm run login
+```
+
+После входа сессия сохраняется только локально:
+
+`playwright/.auth/facebook.json`
+
+Она исключена из Git.
+
+### Сбор объявлений
+
+Если переменные экспортированы в shell:
+
+```bash
+npm run collect
+```
+
+Либо:
+
+```bash
+node --env-file=.env src/cli.js collect
+```
+
+Глубина:
+
+```bash
+node --env-file=.env src/cli.js collect --scrolls=25
+```
+
+Одна группа:
+
+```bash
+node --env-file=.env src/cli.js collect --source=canggu-community-housing --scrolls=20
+```
+
+### Тестовые объявления без Facebook
+
+```bash
+node --env-file=.env src/cli.js import-fixture tests/fixture-posts.json
+```
+
+### Интерфейс
+
+```bash
+node --env-file=.env src/server.js
 ```
 
 Открой:
 
 `http://localhost:4173`
 
-### Запустить на Facebook
-
-Сначала один раз авторизуйся:
-
-```bash
-npm run login
-```
-
-Откроется Chromium. Войди в Facebook вручную. Сессия сохранится локально в `playwright/.auth/facebook.json`.
-
-Затем:
-
-```bash
-npm run collect
-npm run dev
-```
-
-Collector пройдёт по включённым источникам из `config/sources.json`. Если отдельная группа недоступна текущему аккаунту или изменилась её страница, она будет пропущена, а остальные продолжат собираться.
-
-Глубина прокрутки:
-
-```bash
-npm run collect -- --scrolls=25
-```
-
-Один источник:
-
-```bash
-npm run collect -- --source=canggu-community-housing --scrolls=20
-```
-
-Статистика:
-
-```bash
-npm run stats
-```
-
-База: `data/pleasestayhere.db`.
-
 ## Дедупликация
 
-Повтор считается дублем при одном из сильных сигналов:
+Повтор связывается с оригиналом через `duplicate_of_listing_id`, но не удаляется. Поэтому можно проверять ошибки алгоритма.
 
-- тот же Facebook permalink;
-- идентичный текст после удаления URL/телефонов/цен и нормализации;
-- тот же телефон + почти та же цена + тот же район;
-- тот же телефон + сильно похожий текст;
-- совпадающие цена/район/тип/спальни + высокая текстовая похожесть;
-- почти идентичный текст в другом паблике.
+Сильные сигналы:
 
-Мы не удаляем повтор физически: он получает `duplicate_of_listing_id`, причину и score. Поэтому пороги можно корректировать после просмотра реальных данных, не теряя исходные посты.
+- одинаковый Facebook permalink;
+- идентичный нормализованный текст;
+- телефон + почти одинаковая цена + район;
+- телефон + сильно похожий текст;
+- цена + район + тип + спальни + высокая похожесть текста;
+- почти идентичный текст в разных группах.
 
-## UI
+UI по умолчанию скрывает дубли, но позволяет их показать.
 
-По умолчанию показывает только уникальные объявления. Есть:
+## Facebook
 
-- текстовый поиск;
-- город;
-- район;
-- тип жилья;
-- максимальная цена;
-- переключатель «Показать повторы»;
-- счётчики unique / hidden duplicates / raw posts.
+Collector не использует обход CAPTCHA, stealth-механизмы или прокси-ротацию. Если Facebook требует повторный вход, нужно снова запустить `npm run login`.
 
-## Ограничение Facebook
+Стартовые Bali-группы находятся в:
 
-Collector не использует stealth, обход CAPTCHA, прокси-ротацию или обход checkpoint. Если Facebook просит повторный вход, снова выполни `npm run login`. Разметка Facebook может меняться, поэтому весь FB-сбор вынесен в отдельный адаптер `src/facebook/collector.js`.
+`config/sources.json`
