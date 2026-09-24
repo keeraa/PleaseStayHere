@@ -1,0 +1,33 @@
+{
+  "source": {
+    "id":"fixture-bali",
+    "type":"facebook_group",
+    "name":"Fixture Bali Rentals",
+    "url":"https://facebook.invalid/groups/fixture",
+    "country":"Indonesia",
+    "city":"Bali"
+  },
+  "posts":[
+    {
+      "source_post_key":"p1",
+      "source_url":"https://facebook.invalid/groups/fixture/posts/1",
+      "author":"Made",
+      "text":"AVAILABLE NOW - 2BR villa in Ubud / Penestanan. Rp 12 juta per month. 2 bathrooms, furnished. WhatsApp +62 812 3456 7890",
+      "images":["https://example.invalid/a.jpg"]
+    },
+    {
+      "source_post_key":"p2",
+      "source_url":"https://facebook.invalid/groups/fixture/posts/2",
+      "author":"Wayan",
+      "text":"Room for rent in Canggu, 4.5 juta / month. Private bathroom. Contact 081234567891",
+      "images":[]
+    },
+    {
+      "source_post_key":"p3",
+      "source_url":"https://facebook.invalid/groups/fixture/posts/3",
+      "author":"Seller",
+      "text":"Motorbike for sale, good condition, 18 juta",
+      "images":[]
+    }
+  ]
+}
