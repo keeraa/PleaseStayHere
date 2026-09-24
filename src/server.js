@@ -6,8 +6,8 @@ const PORT=Number(process.env.PORT||4173);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const typeLabel=x=>({villa:'Villa',house:'House',room:'Room',apartment:'Apartment',studio:'Studio',kost:'Kost',guesthouse:'Guesthouse',homestay:'Homestay'}[x]||x||'Rental');
 
-function page(){
-  const f=facets(); const st=stats();
+async function page(){
+  const [f,st]=await Promise.all([facets(),stats()]);
   return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PleaseStayHere</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f6f7;color:#17191c}button,input,select{font:inherit}.top{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid #e6e8eb}.wrap{max-width:1240px;margin:auto;padding:0 24px}.head{height:72px;display:flex;align-items:center;justify-content:space-between;gap:24px}.brand{font-weight:800;font-size:20px}.meta{font-size:13px;color:#69717c}.filters{display:grid;grid-template-columns:minmax(220px,1fr) repeat(4,minmax(120px,180px));gap:10px;padding:14px 0 18px}.filters input,.filters select{height:44px;border:1px solid #dfe3e8;border-radius:12px;background:#fff;padding:0 13px;outline:none}.filters input:focus,.filters select:focus{border-color:#929aa5}.bar{display:flex;justify-content:space-between;align-items:center;padding:24px 0 14px}.count{font-size:14px;color:#69717c}.toggle{font-size:13px;display:flex;gap:7px;align-items:center}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding-bottom:60px}.card{background:#fff;border:1px solid #e6e8eb;border-radius:16px;overflow:hidden;min-width:0}.photo{height:210px;background:#eceff2;display:flex;align-items:center;justify-content:center;color:#8a929d;overflow:hidden}.photo img{width:100%;height:100%;object-fit:cover}.body{padding:15px}.eyebrow{display:flex;justify-content:space-between;gap:10px;color:#737b86;font-size:12px;margin-bottom:8px}.title{font-size:17px;font-weight:720;line-height:1.25;margin-bottom:8px}.price{font-size:19px;font-weight:800;margin-bottom:10px}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.chip{padding:5px 8px;border-radius:8px;background:#f2f4f6;font-size:12px;color:#4e5661}.desc{font-size:13px;line-height:1.45;color:#555e69;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;min-height:75px}.foot{margin-top:14px;display:flex;justify-content:space-between;gap:8px;align-items:center}.source{font-size:12px;color:#78818c}.open{border:0;background:#17191c;color:#fff;border-radius:9px;padding:8px 11px;text-decoration:none;font-size:12px}.dup{font-size:11px;color:#9a6500;background:#fff6dc;padding:4px 7px;border-radius:6px}.empty{grid-column:1/-1;padding:80px;text-align:center;color:#7b838d}.stats{display:flex;gap:16px;flex-wrap:wrap}.stat b{color:#17191c}@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}}@media(max-width:600px){.wrap{padding:0 14px}.head{height:auto;padding:16px 0;align-items:flex-start;flex-direction:column}.grid{grid-template-columns:1fr}.filters{grid-template-columns:1fr 1fr}.photo{height:230px}.stats{gap:8px}.meta{font-size:12px}}
@@ -22,14 +22,15 @@ function card(x){const im=x.images&&x.images[0]; const chips=[x.area,x.property_
 </script></body></html>`;
 }
 
-const server=http.createServer((req,res)=>{
+const server=http.createServer(async (req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host}`);
   if (u.pathname==='/api/listings') {
     const q=Object.fromEntries(u.searchParams.entries()); q.includeDuplicates=q.includeDuplicates==='1';
-    res.writeHead(200,{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}); res.end(JSON.stringify(listListings(q))); return;
+    const rows=await listListings(q); res.writeHead(200,{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}); res.end(JSON.stringify(rows)); return;
   }
-  if (u.pathname==='/api/stats') { res.writeHead(200,{'content-type':'application/json'}); res.end(JSON.stringify(stats())); return; }
-  if (u.pathname==='/') { res.writeHead(200,{'content-type':'text/html; charset=utf-8'}); res.end(page()); return; }
+  if (u.pathname==='/api/stats') { res.writeHead(200,{'content-type':'application/json'}); res.end(JSON.stringify(await stats())); return; }
+  if (u.pathname==='/') { res.writeHead(200,{'content-type':'text/html; charset=utf-8'}); res.end(await page()); return; }
   res.writeHead(404);res.end('Not found');
 });
+server.on('clientError',()=>{});
 server.listen(PORT,()=>console.log(`PleaseStayHere UI: http://localhost:${PORT}`));
