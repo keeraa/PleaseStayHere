@@ -1,0 +1,65 @@
+[
+  {
+    "id": "bali-housing-accommodation",
+    "type": "facebook_group",
+    "name": "Bali Housing and Accommodation",
+    "url": "https://www.facebook.com/groups/345470402201472/",
+    "country": "Indonesia",
+    "city": "Bali",
+    "enabled": true
+  },
+  {
+    "id": "bali-property-rentals",
+    "type": "facebook_group",
+    "name": "Bali Property Rentals",
+    "url": "https://www.facebook.com/groups/579465438768922/",
+    "country": "Indonesia",
+    "city": "Bali",
+    "enabled": true
+  },
+  {
+    "id": "south-bali-housing",
+    "type": "facebook_group",
+    "name": "South Bali Housing, Land and Accommodation",
+    "url": "https://www.facebook.com/groups/SouthBaliProperty/",
+    "country": "Indonesia",
+    "city": "Bali",
+    "enabled": true
+  },
+  {
+    "id": "canggu-community-housing",
+    "type": "facebook_group",
+    "name": "Canggu Community Housing",
+    "url": "https://www.facebook.com/groups/canggucommunityhousing/",
+    "country": "Indonesia",
+    "city": "Bali",
+    "enabled": true
+  },
+  {
+    "id": "bali-long-term-rentals",
+    "type": "facebook_group",
+    "name": "Bali Long Term Rentals",
+    "url": "https://www.facebook.com/groups/1491612634493288/",
+    "country": "Indonesia",
+    "city": "Bali",
+    "enabled": true
+  },
+  {
+    "id": "uluwatu-community-housing",
+    "type": "facebook_group",
+    "name": "Uluwatu Community Housing",
+    "url": "https://www.facebook.com/groups/915386676570992/",
+    "country": "Indonesia",
+    "city": "Bali",
+    "enabled": true
+  },
+  {
+    "id": "kedungu-community-housing",
+    "type": "facebook_group",
+    "name": "Kedungu Community Housing",
+    "url": "https://www.facebook.com/groups/kedungucommunityhousing/",
+    "country": "Indonesia",
+    "city": "Bali",
+    "enabled": true
+  }
+]
