@@ -1,0 +1,6 @@
+node_modules/
+data/*.db
+data/*.db-*
+playwright/.auth/*
+!playwright/.auth/.gitkeep
+.DS_Store
